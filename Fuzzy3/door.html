@@ -1,0 +1,338 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Automatic Sliding Door</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#e8f3ff;
+padding:20px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:15px;
+box-shadow:0 0 15px #bbb;
+}
+
+h1,h2{
+text-align:center;
+}
+
+h1{
+color:#1565c0;
+}
+
+h2{
+margin:20px 0 10px;
+}
+
+.controls{
+text-align:center;
+margin:20px 0;
+}
+
+input[type="range"]{
+width:90%;
+margin:15px;
+}
+
+.simulation{
+height:280px;
+border:2px dashed #aaa;
+position:relative;
+margin-top:20px;
+}
+
+.doorFrame{
+position:absolute;
+left:50%;
+bottom:0;
+transform:translateX(-50%);
+width:320px;
+height:220px;
+border:8px solid #444;
+background:#ddd;
+overflow:hidden;
+}
+
+.welcome{
+position:absolute;
+width:100%;
+top:45%;
+text-align:center;
+font-size:28px;
+font-weight:bold;
+color:#1565c0;
+}
+
+#leftDoor,#rightDoor{
+position:absolute;
+top:0;
+width:160px;
+height:204px;
+background:#7dd3fc;
+border:1px solid #444;
+transition:.5s;
+}
+
+#leftDoor{
+left:0;
+}
+
+#rightDoor{
+right:0;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+border:1px solid #999;
+padding:10px;
+text-align:center;
+}
+
+th{
+background:#1565c0;
+color:white;
+}
+
+pre{
+background:#f3f3f3;
+padding:12px;
+margin-top:10px;
+white-space:pre-wrap;
+line-height:1.5;
+}
+
+.status{
+text-align:center;
+background:#e3f2fd;
+padding:10px;
+margin-top:10px;
+font-weight:bold;
+}
+
+@media(max-width:600px){
+body{
+padding:10px;
+}
+
+.container{
+padding:15px;
+}
+
+.doorFrame{
+width:280px;
+height:190px;
+}
+
+#leftDoor,#rightDoor{
+width:140px;
+height:174px;
+}
+
+.welcome{
+font-size:22px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Automatic Sliding Door Using Fuzzy Logic</h1>
+
+<div class="controls">
+<label>Distance Sensor Value</label>
+<br>
+<input type="range" id="distance" min="0" max="100" value="100">
+<h2 id="distanceValue">100 cm</h2>
+</div>
+
+<div class="simulation">
+<div class="doorFrame">
+<div id="leftDoor"></div>
+<div id="rightDoor"></div>
+<div class="welcome">WELCOME</div>
+</div>
+</div>
+
+<h2>Membership Values</h2>
+
+<table>
+<tr>
+<th>Near</th>
+<th>Medium</th>
+<th>Far</th>
+</tr>
+
+<tr>
+<td id="near">0.00</td>
+<td id="medium">0.00</td>
+<td id="far">1.00</td>
+</tr>
+</table>
+
+<h2>Consequent Fuzzy Sets</h2>
+
+<table>
+<tr>
+<th>Closed</th>
+<th>Half Open</th>
+<th>Fully Open</th>
+</tr>
+
+<tr>
+<td>0%</td>
+<td>50%</td>
+<td>100%</td>
+</tr>
+</table>
+
+<h2>Fuzzy Rules</h2>
+
+<pre>IF Distance is Near THEN Door is Fully Open
+IF Distance is Medium THEN Door is Half Open
+IF Distance is Far THEN Door is Closed
+
+Inference Method:
+Mamdani Fuzzy Inference</pre>
+
+<h2>Defuzzification</h2>
+
+<pre id="formula">Waiting...</pre>
+
+<h2 id="opening">Door Opening: 0%</h2>
+
+<div class="status" id="status">
+Door Closed
+</div>
+
+</div>
+
+<script>
+const slider=document.getElementById("distance");
+const distanceValue=document.getElementById("distanceValue");
+const near=document.getElementById("near");
+const medium=document.getElementById("medium");
+const far=document.getElementById("far");
+const formula=document.getElementById("formula");
+const opening=document.getElementById("opening");
+const status=document.getElementById("status");
+const leftDoor=document.getElementById("leftDoor");
+const rightDoor=document.getElementById("rightDoor");
+
+function triangular(x,a,b,c){
+
+if(a===b){
+if(x<=a)return 1;
+if(x>=c)return 0;
+return(c-x)/(c-a);
+}
+
+if(b===c){
+if(x>=c)return 1;
+if(x<=a)return 0;
+return(x-a)/(c-a);
+}
+
+if(x<=a||x>=c)return 0;
+
+if(x===b)return 1;
+
+if(x<b){
+return(x-a)/(b-a);
+}
+
+return(c-x)/(c-b);
+}
+
+function update(){
+
+let d=Number(slider.value);
+
+distanceValue.textContent=d+" cm";
+
+let n=triangular(d,0,0,60);
+let m=triangular(d,30,50,70);
+let f=triangular(d,40,100,100);
+
+near.textContent=n.toFixed(2);
+medium.textContent=m.toFixed(2);
+far.textContent=f.toFixed(2);
+
+let denominator=n+m+f;
+
+let doorOpen=0;
+
+if(denominator>0){
+doorOpen=
+(n*100+m*50+f*0)/denominator;
+}
+
+formula.textContent=
+"Near = "+n.toFixed(2)+"\n"+
+"Medium = "+m.toFixed(2)+"\n"+
+"Far = "+f.toFixed(2)+"\n\n"+
+"Triangular Membership Function\n\n"+
+"Near Output = 100%\n"+
+"Medium Output = 50%\n"+
+"Far Output = 0%\n\n"+
+"Formula:\n"+
+"(("+n.toFixed(2)+"×100)+("+
+m.toFixed(2)+"×50)+("+
+f.toFixed(2)+"×0)) / ("+
+n.toFixed(2)+"+"+
+m.toFixed(2)+"+"+
+f.toFixed(2)+")\n\n"+
+"Door Opening = "+doorOpen.toFixed(2)+"%";
+
+opening.textContent=
+"Door Opening: "+doorOpen.toFixed(2)+"%";
+
+let move=doorOpen*1.4;
+
+leftDoor.style.transform=
+"translateX(-"+move+"px)";
+
+rightDoor.style.transform=
+"translateX("+move+"px)";
+
+if(doorOpen<20){
+status.textContent="Door Closed";
+}
+else if(doorOpen<70){
+status.textContent="Door Half Open";
+}
+else{
+status.textContent="Door Fully Open";
+}
+
+}
+
+slider.addEventListener("input",update);
+
+update();
+</script>
+
+</body>
+</html>

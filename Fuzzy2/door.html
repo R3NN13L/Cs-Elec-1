@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automatic Sliding Door - Fuzzy Logic Controller</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #e8f3ff;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+
+    .controls {
+      text-align: center;
+      margin-top: 15px;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    input[type="range"] {
+      width: 90%;
+      margin: 15px 0;
+      cursor: pointer;
+    }
+
+    .simulation {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      margin-top: 20px;
+      border: 2px dashed #bbb;
+      background: #fafafa;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .doorFrame {
+      position: relative;
+      width: 320px;
+      height: 220px;
+      border: 8px solid #444;
+      background: #eee;
+      overflow: hidden;
+    }
+
+    .welcome {
+      position: absolute;
+      width: 100%;
+      top: 45%;
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+      color: #1565c0;
+      user-select: none;
+    }
+
+    #leftDoor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 160px;
+      height: 220px;
+      background: rgba(0, 170, 255, 0.6);
+      border-right: 2px solid #222;
+      z-index: 2;
+    }
+
+    #rightDoor {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 160px;
+      height: 220px;
+      background: rgba(0, 170, 255, 0.6);
+      border-left: 2px solid #222;
+      z-index: 2;
+    }
+
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 15px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #aaa;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #f0f4f8;
+    }
+
+    pre {
+      background: #f4f4f4;
+      padding: 15px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      border-radius: 8px;
+      border-left: 5px solid #1565c0;
+      font-family: 'Courier New', Courier, monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Fuzzy Logic Automatic Sliding Door</h1>
+
+    <div class="controls">
+      <label><strong>Distance Sensor Value (Antecedent Input)</strong></label>
+      <br />
+      <input type="range" id="distance" min="0" max="100" value="100" />
+      <h2 id="distanceValue">100 cm</h2>
+    </div>
+
+    <div class="simulation">
+      <div class="doorFrame">
+        <div class="welcome">WELCOME</div>
+        <div id="leftDoor"></div>
+        <div id="rightDoor"></div>
+      </div>
+    </div>
+
+    <br />
+    <h2>Live Membership Function Chart (Pure HTML Canvas)</h2>
+    <canvas id="fuzzyGraph" width="800" height="250"></canvas>
+
+    <h2>Fuzzified Membership Values</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="color: red;">Near Set (0 - 60 cm)</th>
+          <th style="color: green;">Medium Set (30 - 70 cm)</th>
+          <th style="color: blue;">Far Set (40 - 100+ cm)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="near">0.00</td>
+          <td id="medium">0.00</td>
+          <td id="far">0.00</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <br />
+    <h2 id="opening">Door Opening : 0%</h2>
+    <h2 id="status">Status: Door Closed</h2>
+
+    <h2>Fuzzy Inference & Rules</h2>
+    <pre>
+<strong>IF</strong> Distance is Near <strong>THEN</strong> Door is Fully Open (100%)
+<strong>IF</strong> Distance is Medium <strong>THEN</strong> Door is Half Open (50%)
+<strong>IF</strong> Distance is Far <strong>THEN</strong> Door is Closed (0%)
+
+<strong>Inference Engine:</strong> Mamdani Fuzzy System
+<strong>Membership Type:</strong> Triangular Membership Function
+<strong>Defuzzification Method:</strong> Weighted Average (Center of Gravity approximation)
+    </pre>
+
+    <h2>Defuzzification Breakdown</h2>
+    <pre id="formula">Calculating...</pre>
+  </div>
+
+  <script>
+    const slider = document.getElementById("distance");
+    const distanceValue = document.getElementById("distanceValue");
+    const leftDoor = document.getElementById("leftDoor");
+    const rightDoor = document.getElementById("rightDoor");
+    const near = document.getElementById("near");
+    const medium = document.getElementById("medium");
+    const far = document.getElementById("far");
+    const opening = document.getElementById("opening");
+    const status = document.getElementById("status");
+    const formula = document.getElementById("formula");
+    const canvas = document.getElementById("fuzzyGraph");
+    const ctx = canvas.getContext("2d");
+
+    slider.addEventListener("input", updateDoor);
+
+    function triangular(x, a, b, c) {
+      if (a === b && x === a) return 1;
+      if (b === c && x === c) return 1;
+      if (x <= a || x >= c) return 0;
+      if (x === b) return 1;
+      if (x > a && x < b) return (x - a) / (b - a);
+      if (x > b && x < c) return (c - x) / (c - b);
+      return 0;
+    }
+
+    function drawGraph(currentD) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const padding = 40;
+      const graphWidth = canvas.width - 2 * padding;
+      const graphHeight = canvas.height - 2 * padding;
+
+      function toX(val) { return padding + (val / 100) * graphWidth; }
+      function toY(val) { return canvas.height - padding - val * graphHeight; }
+
+      ctx.strokeStyle = "#ddd";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding, padding);
+      ctx.lineTo(padding, canvas.height - padding);
+      ctx.lineTo(canvas.width - padding, canvas.height - padding);
+      ctx.stroke();
+
+      ctx.fillStyle = "#666";
+      ctx.font = "12px Arial";
+      ctx.fillText("0", padding - 5, canvas.height - padding + 15);
+      ctx.fillText("100 cm", canvas.width - padding - 20, canvas.height - padding + 15);
+      ctx.fillText("μ = 1.0", padding - 35, padding + 10);
+      ctx.fillText("μ = 0.0", padding - 35, canvas.height - padding);
+
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(toX(0), toY(1));
+      ctx.lineTo(toX(0), toY(1));
+      ctx.lineTo(toX(60), toY(0));
+      ctx.stroke();
+
+      ctx.strokeStyle = "green";
+      ctx.beginPath();
+      ctx.moveTo(toX(30), toY(0));
+      ctx.lineTo(toX(50), toY(1));
+      ctx.lineTo(toX(70), toY(0));
+      ctx.stroke();
+
+      ctx.strokeStyle = "blue";
+      ctx.beginPath();
+      ctx.moveTo(toX(40), toY(0));
+      ctx.lineTo(toX(100), toY(1));
+      ctx.stroke();
+
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(toX(currentD), padding);
+      ctx.lineTo(toX(currentD), canvas.height - padding);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(toX(currentD), canvas.height - padding, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function updateDoor() {
+      let d = Number(slider.value);
+      distanceValue.innerHTML = d + " cm";
+
+      let n = triangular(d, 0, 0, 60);
+      let m = triangular(d, 30, 50, 70);
+      let f = triangular(d, 40, 100, 120);
+
+      n = Number(n.toFixed(2));
+      m = Number(m.toFixed(2));
+      f = Number(f.toFixed(2));
+
+      near.innerHTML = n;
+      medium.innerHTML = m;
+      far.innerHTML = f;
+
+      let nearOutput = 100;
+      let mediumOutput = 50;
+      let farOutput = 0;
+
+      let numerator = (n * nearOutput) + (m * mediumOutput) + (f * farOutput);
+      let denominator = n + m + f;
+      let open = 0;
+
+      if (denominator !== 0) {
+        open = numerator / denominator;
+      }
+
+      open = Number(open.toFixed(2));
+
+      opening.innerHTML = "Door Opening : " + open + "%";
+
+      formula.innerHTML =
+        "Near Membership (n) = " + n + "\n" +
+        "Medium Membership (m) = " + m + "\n" +
+        "Far Membership (f) = " + f + "\n\n" +
+        "Weighted Average Formula:\n" +
+        "Output = ((n × 100) + (m × 50) + (f × 0)) / (n + m + f)\n\n" +
+        "Calculation:\n" +
+        "= ((" + n + " × 100) + (" + m + " × 50) + (" + f + " × 0)) / (" + n + " + " + m + " + " + f + ")\n" +
+        "= " + numerator.toFixed(2) + " / " + denominator.toFixed(2) + "\n\n" +
+        "Final De-fuzzified Door Opening = " + open + "%";
+
+      let move = open * 1.4;
+      leftDoor.style.left = -move + "px";
+      rightDoor.style.right = -move + "px";
+
+      if (open < 20) {
+        status.innerHTML = "Status: Door Closed";
+      } else if (open < 70) {
+        status.innerHTML = "Status: Door Half Open";
+      } else {
+        status.innerHTML = "Status: Door Fully Open";
+      }
+
+      drawGraph(d);
+    }
+
+    updateDoor();
+  </script>
+</body>
+</html>
