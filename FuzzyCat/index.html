@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Automatic Sliding Door Using Fuzzy Logic</title>
+    <title>Automatic Sliding Door </title>
 
     <style>
       * {
@@ -43,8 +43,7 @@
         margin: 20px;
       }
 
-      /* SLIDING DOOR AREA */
-
+      
       .simulation {
         position: relative;
         width: 100%;
@@ -53,7 +52,7 @@
         border: 2px dashed #bbb;
       }
 
-      /* CENTER DOOR */
+      
 
       .doorFrame {
         position: absolute;
@@ -149,7 +148,7 @@
       <div class="controls">
         <label> Distance Sensor Value </label>
 
-        <br /><br />
+        <br/><br/>
 
         <input type="range" id="distance" min="0" max="100" value="100" />
 
@@ -186,7 +185,7 @@
         </tr>
       </table>
 
-      <br />
+      <br/>
 
       <h2 id="opening">Door Opening : 0%</h2>
 
@@ -210,8 +209,7 @@ Membership Function:
 
 Triangular Membership Function
 
-</pre
-      >
+</pre>
 
       <h2>Defuzzification</h2>
 
@@ -219,8 +217,7 @@ Triangular Membership Function
 
 Waiting...
 
-</pre
-      >
+</pre>
     </div>
     <script>
       const slider = document.getElementById("distance");
@@ -247,9 +244,14 @@ Waiting...
 
       updateDoor();
 
-      // TRIANGULAR MEMBERSHIP FUNCTION
-
+     
       function triangular(x, a, b, c) {
+        if (a === b && x === a) {
+    return 1;
+  }
+  if (b === c && x === c) {
+    return 1;
+  }
         if (x <= a || x >= c) {
           return 0;
         } else if (x == b) {
@@ -268,7 +270,7 @@ Waiting...
 
         distanceValue.innerHTML = d + " cm";
 
-        // FUZZY SETS (TRIANGULAR)
+      
 
         let n = triangular(d, 0, 0, 60);
 
@@ -288,7 +290,7 @@ Waiting...
 
         far.innerHTML = f;
 
-        // MAMDANI OUTPUT VALUES
+       
 
         let nearOutput = 100;
 
@@ -296,7 +298,7 @@ Waiting...
 
         let farOutput = 0;
 
-        // DEFUZZIFICATION
+       
 
         let numerator = n * nearOutput + m * mediumOutput + f * farOutput;
 
@@ -341,15 +343,13 @@ Waiting...
           open +
           "%";
 
-        // DOOR MOVEMENT
-
+      
         let move = open * 1.4;
 
         leftDoor.style.left = -move + "px";
 
         rightDoor.style.right = -move + "px";
 
-        // STATUS
 
         if (open < 20) {
           status.innerHTML = "Door Closed";
