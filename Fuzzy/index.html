@@ -1,0 +1,93 @@
+<!doctype html> 
+<html lang="en"> 
+  <head> 
+    <meta charset="UTF-8" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+ 
+    <title>Automatic Sliding Door </title> 
+
+    <link rel="stylesheet" href="style.css">
+  </head> 
+  
+  <body> 
+    <div class="container"> 
+      <h1>Automatic Sliding Door Using Fuzzy Logic</h1> 
+ 
+      <div class="controls"> 
+        <label> Distance Sensor Value </label> 
+ 
+        <br/><br/> 
+ 
+        <input type="range" id="distance" min="0" max="100" value="100" /> 
+ 
+        <h2 id="distanceValue">100 cm</h2> 
+      </div> 
+ 
+      <div class="simulation"> 
+        <div class="doorFrame"> 
+          <div id="leftDoor"></div> 
+ 
+          <div id="rightDoor"></div> 
+ 
+          <div class="welcome">WELCOME</div> 
+        </div> 
+      </div> 
+ 
+      <h2>Membership Values</h2> 
+ 
+      <table> 
+        <tr> 
+          <th>Near</th> 
+ 
+          <th>Medium</th> 
+ 
+          <th>Far</th> 
+        </tr> 
+ 
+        <tr> 
+          <td id="near">0.00</td> 
+ 
+          <td id="medium">0.00</td> 
+ 
+          <td id="far">0.00</td> 
+        </tr> 
+      </table> 
+ 
+      <br/> 
+ 
+      <h2 id="opening">Door Opening : 0%</h2> 
+ 
+      <h2 id="status">Door Closed</h2> 
+ 
+      <h2>Fuzzy Rules</h2> 
+ 
+      <pre> 
+ 
+1. IF Distance is Near THEN Door is Fully Open 
+ 
+2. IF Distance is Medium THEN Door is Half Open 
+ 
+3. IF Distance is Far THEN Door is Closed 
+ 
+Inference Method: 
+ 
+Mamdani Fuzzy Inference 
+ 
+Membership Function: 
+ 
+Triangular Membership Function 
+ 
+</pre> 
+ 
+      <h2>Defuzzification</h2> 
+ 
+      <pre id="formula"> 
+ 
+Waiting... 
+ 
+</pre> 
+    </div> 
+
+    <script src="script.js"></script>
+  </body> 
+</html>

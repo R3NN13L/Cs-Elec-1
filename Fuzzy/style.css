@@ -1,0 +1,129 @@
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+  font-family: Arial, sans-serif; 
+} 
+
+body { 
+  background: #5c6f83; 
+  padding: 20px; 
+} 
+
+.container { 
+  max-width: 900px; 
+  margin: auto; 
+  background: rgb(131, 95, 95); 
+  padding: 20px; 
+  border-radius: 15px; 
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); 
+} 
+
+h1, 
+h2 { 
+  text-align: center; 
+} 
+
+.controls { 
+  text-align: center; 
+  margin-top: 20px; 
+} 
+
+input[type="range"] { 
+  width: 90%; 
+  margin: 20px; 
+} 
+
+.simulation { 
+  position: relative; 
+  width: 100%; 
+  height: 300px; 
+  margin-top: 30px; 
+  border: 2px dashed #bbb; 
+} 
+
+.doorFrame { 
+  position: absolute; 
+  left: 50%; 
+  bottom: 0; 
+  transform: translateX(-50%); 
+
+  width: 320px; 
+  height: 220px; 
+
+  border: 8px solid #111111; 
+  background: #585656; 
+
+  overflow: hidden; 
+} 
+
+.welcome { 
+  position: absolute; 
+  width: 100%; 
+  top: 45%; 
+
+  text-align: center; 
+
+  font-size: 28px; 
+  font-weight: bold; 
+
+  color: #0c0c0c; 
+} 
+
+#leftDoor { 
+  position: absolute; 
+
+  left: 0; 
+  top: 0; 
+
+  width: 160px; 
+  height: 220px; 
+
+  background: rgba(44, 173, 72, 0.45); 
+
+  border-right: 2px solid #444; 
+
+  transition: 0.5s; 
+} 
+
+#rightDoor { 
+  position: absolute; 
+
+  right: 0; 
+  top: 0; 
+
+  width: 160px; 
+  height: 220px; 
+
+  background: rgba(44, 173, 72, 0.45); 
+
+  border-left: 2px solid #444; 
+
+  transition: 0.5s; 
+} 
+
+table { 
+  width: 100%; 
+  margin-top: 20px; 
+
+  border-collapse: collapse; 
+} 
+
+th, 
+td { 
+  border: 1px solid #111010; 
+
+  padding: 10px; 
+
+  text-align: center; 
+} 
+
+pre { 
+  background: #666464; 
+
+  padding: 15px; 
+
+  margin-top: 15px; 
+
+  white-space: pre-wrap; 
+}
